@@ -41,6 +41,7 @@ js('main.js');
 js('Calendar.js');
 js('Header.js');
 js('EventManager.js');
+js('IntervalManager.js');
 
 js('basic/MonthView.js');
 js('basic/BasicWeekView.js');

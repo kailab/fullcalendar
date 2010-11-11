@@ -1,6 +1,6 @@
 
  
-function Calendar(element, options, eventSources) {
+function Calendar(element, options, eventSources, intervalSources) {
 	var t = this;
 	
 	
@@ -11,6 +11,8 @@ function Calendar(element, options, eventSources) {
 	t.refetchEvents = refetchEvents;
 	t.reportEvents = reportEvents;
 	t.reportEventChange = reportEventChange;
+	t.reportIntervals = reportIntervals;
+	t.inInterval = inInterval;
 	t.changeView = changeView;
 	t.select = select;
 	t.unselect = unselect;
@@ -31,8 +33,10 @@ function Calendar(element, options, eventSources) {
 	
 	// imports
 	EventManager.call(t, options, eventSources);
+	IntervalManager.call(t, options, intervalSources);
 	var isFetchNeeded = t.isFetchNeeded;
 	var fetchEvents = t.fetchEvents;
+	var fetchIntervals = t.fetchIntervals;
 	
 	
 	// locals
@@ -50,6 +54,7 @@ function Calendar(element, options, eventSources) {
 	var ignoreWindowResize = 0;
 	var date = new Date();
 	var events = [];
+	var viewInc = 0;
 	
 	
 	
@@ -185,6 +190,17 @@ function Calendar(element, options, eventSources) {
 	
 	
 	function renderView(inc) {
+		if (!currentView.start || inc || date < currentView.start || date >= currentView.end) {
+			// view must refetch intervals before rendering
+			updateIntervals(inc);
+		}else{
+			doRenderView(inc);
+		}
+	}
+
+	
+
+	function doRenderView(inc) {
 		if (elementVisible()) {
 			ignoreWindowResize++; // because renderEvents might temporarily change the height before setSize is reached
 
@@ -354,7 +370,43 @@ function Calendar(element, options, eventSources) {
 	}
 	
 
+	/* Interval Fetching/Rendering
+	-----------------------------------------------------------------------------*/
 
+	function updateIntervals(inc) {
+		viewInc = inc;
+		fetchIntervals(currentView.visStart, currentView.visEnd); // will call reportIntervals
+	}
+
+	// called when interval data arrives
+	function reportIntervals(_intervals) {
+		intervals = _intervals;
+		// render view with intervals and load events
+		doRenderView(viewInc);
+	}
+
+	function inInterval(start,end) {
+		if(typeof end == 'string'){
+			var d = 0;
+			switch(end){
+				case 'day':
+					d = 86400000;
+					break;
+			}
+			end = new Date(start.getTime()+d);
+		}else if(typeof end == 'integer'){
+			// end is difference in seconds
+			end = new Date(start.getTime()+(end*1000));
+		}
+		var found = false;
+		$.each(intervals, function(i, interval) {
+			if(start >= interval.start && end <= interval.end){
+				found = true;
+			}
+		});
+		return found;
+	}
+	
 	/* Selection
 	-----------------------------------------------------------------------------*/
 	

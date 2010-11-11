@@ -19,6 +19,13 @@ function View(element, calendar, viewName) {
 	t.hideEvents = hideEvents;
 	t.eventDrop = eventDrop;
 	t.eventResize = eventResize;
+	t.reportIntervals = reportIntervals;
+	t.intervalEnd = intervalEnd;
+	t.reportIntervalElement = reportIntervalElement;
+	t.reportIntervalClear = reportIntervalClear;
+	t.intervalElementHandlers = intervalElementHandlers;
+	t.showIntervals = showIntervals;
+	t.hideIntervals = hideIntervals;
 	// t.title
 	// t.start, t.end
 	// t.visStart, t.visEnd
@@ -28,12 +35,17 @@ function View(element, calendar, viewName) {
 	var defaultEventEnd = t.defaultEventEnd;
 	var normalizeEvent = calendar.normalizeEvent; // in EventManager
 	var reportEventChange = calendar.reportEventChange;
-	
+	var defaultIntervalEnd = t.defaultIntervalEnd;
+	var normalizeInterval = calendar.normalizeInterval; // in IntervalManager
+	var reportIntervalChange = calendar.reportIntervalChange;
 	
 	// locals
 	var eventsByID = {};
 	var eventElements = [];
 	var eventElementsByID = {};
+	var intervalsByID = {};
+	var intervalElements = [];
+	var intervalElementsByID = {};
 	var options = calendar.options;
 	
 	
@@ -195,7 +207,6 @@ function View(element, calendar, viewName) {
 	}
 	
 	
-	
 	/* Event Modification Math
 	---------------------------------------------------------------------------------*/
 	
@@ -222,6 +233,98 @@ function View(element, calendar, viewName) {
 			e = events[i];
 			e.end = addMinutes(addDays(eventEnd(e), dayDelta, true), minuteDelta);
 			normalizeEvent(e, options);
+		}
+	}
+
+
+
+
+	/* Interval Data
+	------------------------------------------------------------------------------*/
+	
+	
+	// report when view receives new intervals
+	function reportIntervals(intervals) { // intervals are already normalized at this point
+		intervalsByID = {};
+		var i, len=intervals.length, interval;
+		for (i=0; i<len; i++) {
+			interval = intervals[i];
+			if (intervalsByID[interval._id]) {
+				intervalsByID[interval._id].push(interval);
+			}else{
+				intervalsByID[interval._id] = [interval];
+			}
+		}
+	}
+	
+	
+	// returns a Date object for an interval's end
+	function intervalEnd(interval) {
+		return interval.end ? cloneDate(interval.end) : defaultIntervalEnd(interval);
+	}
+	
+	
+	
+	/* Interval Elements
+	------------------------------------------------------------------------------*/
+	
+	
+	// report when view creates an element for an interval
+	function reportIntervalElement(interval, element) {
+		intervalElements.push(element);
+		if (intervalElementsByID[interval._id]) {
+			intervalElementsByID[interval._id].push(element);
+		}else{
+			intervalElementsByID[interval._id] = [element];
+		}
+	}
+	
+	
+	function reportIntervalClear() {
+		intervalElements = [];
+		intervalElementsByID = {};
+	}
+	
+	
+	// attaches intervalClick, intervalMouseover, intervalMouseout
+	function intervalElementHandlers(interval, intervalElement) {
+		intervalElement
+			.click(function(ev) {
+				if (!intervalElement.hasClass('ui-draggable-dragging') &&
+					!intervalElement.hasClass('ui-resizable-resizing')) {
+						return trigger('intervalClick', this, interval, ev);
+					}
+			})
+			.hover(
+				function(ev) {
+					trigger('intervalMouseover', this, interval, ev);
+				},
+				function(ev) {
+					trigger('intervalMouseout', this, interval, ev);
+				}
+			);
+		// TODO: don't fire intervalMouseover/intervalMouseout *while* dragging is occuring (on subject element)
+		// TODO: same for resizing
+	}
+	
+	
+	function showIntervals(interval, exceptElement) {
+		eachIntervalElement(interval, exceptElement, 'show');
+	}
+	
+	
+	function hideIntervals(interval, exceptElement) {
+		eachIntervalElement(interval, exceptElement, 'hide');
+	}
+	
+	
+	function eachIntervalElement(interval, exceptElement, funcName) {
+		var elements = intervalElementsByID[interval._id],
+			i, len = elements.length;
+		for (i=0; i<len; i++) {
+			if (elements[i][0] != exceptElement[0]) {
+				elements[i][funcName]();
+			}
 		}
 	}
 	

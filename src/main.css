@@ -232,6 +232,8 @@ table.fc-header {
 	width: 100%;
 	overflow: hidden;
 	}
-	
-	
+
+.fc-content .fc-not-in-interval {
+    background: #eee;
+}
 	

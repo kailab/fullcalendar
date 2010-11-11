@@ -5,7 +5,6 @@ setDefaults({
 	weekMode: 'fixed'
 });
 
-
 function BasicView(element, calendar, viewName) {
 	var t = this;
 	
@@ -47,6 +46,7 @@ function BasicView(element, calendar, viewName) {
 	var clearOverlays = t.clearOverlays;
 	var daySelectionMousedown = t.daySelectionMousedown;
 	var formatDate = calendar.formatDate;
+	var inInterval = calendar.inInterval;
 	
 	
 	// locals
@@ -122,7 +122,10 @@ function BasicView(element, calendar, viewName) {
 						(rowCnt>1 && d.getMonth() != month ? ' fc-other-month' : '') +
 						(+d == +today ?
 						' fc-today '+tm+'-state-highlight' :
-						' fc-not-today') + "'>" +
+						' fc-not-today') +
+            (inInterval(d,'day') ?
+            ' fc-in-interval' :
+            ' fc-not-in-interval' ) + "'>" +
 						(showNumbers ? "<div class='fc-day-number'>" + d.getDate() + "</div>" : '') +
 						"<div class='fc-day-content'><div style='position:relative'>&nbsp;</div></div></td>";
 					addDays(d, 1);
@@ -153,7 +156,10 @@ function BasicView(element, calendar, viewName) {
 						s += "<td class='fc-" +
 							dayIDs[d.getDay()] + ' ' + // needs to be first
 							tm + '-state-default fc-new fc-day' + (i*colCnt+j) +
-							(j==dit ? ' fc-leftmost' : '') + "'>" +
+							(j==dit ? ' fc-leftmost' : '') + 
+              (inInterval(d,'day') ?
+              ' fc-in-interval' :
+              ' fc-not-in-interval' ) + "'>" +
 							(showNumbers ? "<div class='fc-day-number'></div>" : '') +
 							"<div class='fc-day-content'><div style='position:relative'>&nbsp;</div></div>" +
 							"</td>";
@@ -188,6 +194,13 @@ function BasicView(element, calendar, viewName) {
 						.removeClass('fc-today')
 						.removeClass(tm + '-state-highlight');
 				}
+        if(inInterval(d,'day')){
+					td.removeClass('fc-not-in-interval')
+						.addClass('fc-in-interval');
+        }else{
+					td.removeClass('fc-in-interval')
+						.addClass('fc-not-in-interval');
+        }
 				td.find('div.fc-day-number').text(d.getDate());
 				addDays(d, 1);
 				if (nwe) {
