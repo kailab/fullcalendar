@@ -13,6 +13,7 @@ function Calendar(element, options, eventSources, intervalSources) {
 	t.reportEventChange = reportEventChange;
 	t.reportIntervals = reportIntervals;
 	t.inInterval = inInterval;
+	t.getIntervals = getIntervals;
 	t.changeView = changeView;
 	t.select = select;
 	t.unselect = unselect;
@@ -385,7 +386,11 @@ function Calendar(element, options, eventSources, intervalSources) {
 		doRenderView(viewInc);
 	}
 
-	function inInterval(start,end) {
+	function getIntervals() {
+		return intervals;
+	}
+
+	function getInterval(start,end) {
 		if(typeof end == 'string'){
 			var d = 0;
 			switch(end){
@@ -397,16 +402,34 @@ function Calendar(element, options, eventSources, intervalSources) {
 		}else if(typeof end == 'integer'){
 			// end is difference in seconds
 			end = new Date(start.getTime()+(end*1000));
-		}
-		var found = false;
-		$.each(intervals, function(i, interval) {
-			if(start >= interval.start && end <= interval.end){
-				found = true;
-			}
+		}else{
+            end = new Date(end);
+        }
+		var interval = { mode: 0 };
+		$.each(intervals, function() {
+			if(interval.mode < 2 && start >= this.start && end <= this.end){
+                interval = this
+                // interval completely in
+                interval.mode = 2;
+			}else if(interval.mode < 1 && start > this.start && start < this.end){
+                interval = this
+                // interval partly in
+                interval.mode = 1;
+			}else if(interval.mode < 1 && end > this.start && end < this.end){
+                interval = this
+                // interval partly in
+                interval.mode = 1;
+            }
+
 		});
-		return found;
+		return interval;
 	}
-	
+
+	function inInterval(start,end) {
+        interval = getInterval(start,end);
+        return interval.mode;
+	}
+
 	/* Selection
 	-----------------------------------------------------------------------------*/
 	

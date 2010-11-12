@@ -122,10 +122,7 @@ function BasicView(element, calendar, viewName) {
 						(rowCnt>1 && d.getMonth() != month ? ' fc-other-month' : '') +
 						(+d == +today ?
 						' fc-today '+tm+'-state-highlight' :
-						' fc-not-today') +
-            (inInterval(d,'day') ?
-            ' fc-in-interval' :
-            ' fc-not-in-interval' ) + "'>" +
+						' fc-not-today') + ' '+getIntervalClass(d,'day') + "'>" +
 						(showNumbers ? "<div class='fc-day-number'>" + d.getDate() + "</div>" : '') +
 						"<div class='fc-day-content'><div style='position:relative'>&nbsp;</div></div></td>";
 					addDays(d, 1);
@@ -157,9 +154,7 @@ function BasicView(element, calendar, viewName) {
 							dayIDs[d.getDay()] + ' ' + // needs to be first
 							tm + '-state-default fc-new fc-day' + (i*colCnt+j) +
 							(j==dit ? ' fc-leftmost' : '') + 
-              (inInterval(d,'day') ?
-              ' fc-in-interval' :
-              ' fc-not-in-interval' ) + "'>" +
+							' ' + getIntervalClass(d,'day') + "'>" +
 							(showNumbers ? "<div class='fc-day-number'></div>" : '') +
 							"<div class='fc-day-content'><div style='position:relative'>&nbsp;</div></div>" +
 							"</td>";
@@ -194,13 +189,20 @@ function BasicView(element, calendar, viewName) {
 						.removeClass('fc-today')
 						.removeClass(tm + '-state-highlight');
 				}
-        if(inInterval(d,'day')){
-					td.removeClass('fc-not-in-interval')
+				var mode = inInterval(d,'day');
+				if(mode == 2){
+					$(td).removeClass('fc-not-in-interval')
+						.removeClass('fc-partly-in-interval')
 						.addClass('fc-in-interval');
-        }else{
-					td.removeClass('fc-in-interval')
+				}else if(mode == 1){
+					$(td).removeClass('fc-in-interval')
+						.removeClass('fc-not-in-interval')
+						.addClass('fc-partly-in-interval');
+				}else{
+					$(td).removeClass('fc-in-interval')
+						.removeClass('fc-partly-in-interval')
 						.addClass('fc-not-in-interval');
-        }
+				}
 				td.find('div.fc-day-number').text(d.getDate());
 				addDays(d, 1);
 				if (nwe) {
@@ -235,6 +237,18 @@ function BasicView(element, calendar, viewName) {
 		
 		}
 		
+	}
+
+	function getIntervalClass(start,end) {
+		var mode = inInterval(start,end);
+		switch(mode){
+			case 2:
+				return 'fc-in-interval';
+			case 1:
+				return 'fc-partly-in-interval';
+			default:
+				return 'fc-not-in-interval';
+		}
 	}
 	
 	

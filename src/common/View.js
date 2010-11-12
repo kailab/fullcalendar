@@ -262,9 +262,7 @@ function View(element, calendar, viewName) {
 	function intervalEnd(interval) {
 		return interval.end ? cloneDate(interval.end) : defaultIntervalEnd(interval);
 	}
-	
-	
-	
+
 	/* Interval Elements
 	------------------------------------------------------------------------------*/
 	

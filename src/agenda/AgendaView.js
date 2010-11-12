@@ -69,6 +69,8 @@ function AgendaView(element, calendar, viewName) {
 	var daySelectionMousedown = t.daySelectionMousedown;
 	var slotSegHtml = t.slotSegHtml;
 	var formatDate = calendar.formatDate;
+	var inInterval = calendar.inInterval;
+	var getIntervals = calendar.getIntervals;
 	
 	
 	// locals
@@ -147,10 +149,17 @@ function AgendaView(element, calendar, viewName) {
 			s += "<th class='" + tm + "-state-default'>&nbsp;</th></tr>";
 			if (opt('allDaySlot')) {
 				s += "<tr class='fc-all-day'>" +
-						"<th class='fc-axis fc-leftmost " + tm + "-state-default'>" + opt('allDayText') + "</th>" +
-						"<td colspan='" + colCnt + "' class='" + tm + "-state-default'>" +
-							"<div class='fc-day-content'><div style='position:relative'>&nbsp;</div></div></td>" +
-						"<th class='" + tm + "-state-default'>&nbsp;</th>" +
+						"<th class='fc-axis fc-leftmost " + tm + "-state-default'>" + opt('allDayText') + "</th>";
+				d = cloneDate(d0);
+				for(i=0;i<colCnt;i++){
+					s += "<td class='" + getIntervalClass(d,'day') + ' '+tm + "-state-default'>" +
+						"<div class='fc-day-content'><div style='position:relative'>&nbsp;</div></div></td>";
+					addDays(d, dis);
+					if (nwe) {
+						skipWeekend(d, dis);
+					}
+				}
+				s += "<th class='" + tm + "-state-default'>&nbsp;</th>" +
 					"</tr><tr class='fc-divider fc-last'><th colspan='" + (colCnt+2) + "' class='" +
 						tm + "-state-default fc-leftmost'><div/></th></tr>";
 			}
@@ -219,6 +228,28 @@ function AgendaView(element, calendar, viewName) {
 					skipWeekend(d, dis);
 				}
 			});
+
+			d = cloneDate(d0);
+			head.find('tr.fc-all-day td').each(function(i,td) {
+				var mode = inInterval(d,'day');
+				if(mode == 2){
+					$(td).removeClass('fc-not-in-interval')
+						.removeClass('fc-partly-in-interval')
+						.addClass('fc-in-interval');
+				}else if(mode == 1){
+					$(td).removeClass('fc-in-interval')
+						.removeClass('fc-not-in-interval')
+						.addClass('fc-partly-in-interval');
+				}else{
+					$(td).removeClass('fc-in-interval')
+						.removeClass('fc-partly-in-interval')
+						.addClass('fc-not-in-interval');
+				}
+				addDays(d, dis);
+				if (nwe) {
+					skipWeekend(d, dis);
+				}
+			});
 			
 			// change classes of background stripes
 			d = cloneDate(d0);
@@ -243,6 +274,7 @@ function AgendaView(element, calendar, viewName) {
 		
 		}
 		
+		renderIntervals();
 	}
 	
 	
@@ -435,9 +467,8 @@ function AgendaView(element, calendar, viewName) {
 			addDays(dayEnd, 1);
 		}
 	}
-	
-	
-	
+
+
 	/* Coordinate Utilities
 	-----------------------------------------------------------------------------*/
 	
@@ -710,5 +741,61 @@ function AgendaView(element, calendar, viewName) {
 		}
 	}
 
+	
+	
+	/* Interval Helpers
+	--------------------------------------------------------------------------------*/
 
+
+	function getIntervalClass(start,end) {
+		var mode = inInterval(start,end);
+		switch(mode){
+			case 2:
+				return 'fc-in-interval';
+			case 1:
+				return 'fc-partly-in-interval';
+			default:
+				return 'fc-not-in-interval';
+		}
+	}
+
+
+	function renderIntervals() {
+		bodyContent.find('.fc-not-in-interval').remove();
+		var intervals = getIntervals();
+		var start = t.visStart;
+		var end = start;
+		$.each(intervals,function(i,interval) {
+			end = interval.start
+			renderNotInInterval(start, end);
+			start = interval.end;
+		});
+		renderNotInInterval(start, t.visEnd);
+	}
+
+	function renderNotInInterval(startDate, endDate) {
+		coordinateGrid.build();
+		var dayStart = cloneDate(t.visStart);
+		var dayEnd = addDays(cloneDate(dayStart), 1);
+		if(startDate >= endDate){
+			return;
+		}
+		for (var i=0; i<colCnt; i++) {
+			var stretchStart = new Date(Math.max(dayStart, startDate));
+			var stretchEnd = new Date(Math.min(dayEnd, endDate));
+			if (stretchStart < stretchEnd) {
+				var col = i*dis+dit;
+				var rect = coordinateGrid.rect(0, col, 0, col, bodyContent); // only use it for horizontal coords
+				var top = timePosition(dayStart, stretchStart);
+				var bottom = timePosition(dayStart, stretchEnd);
+				rect.top = top;
+				rect.height = bottom - top;
+				// high z-index blocks selection
+				var block = $("<div class='fc-not-in-interval' style='position:absolute;z-index:4'/>");
+				block.css(rect).appendTo(bodyContent);
+			}
+			addDays(dayStart, 1);
+			addDays(dayEnd, 1);
+		}
+	}
 }
