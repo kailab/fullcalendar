@@ -46,7 +46,8 @@ function BasicView(element, calendar, viewName) {
 	var clearOverlays = t.clearOverlays;
 	var daySelectionMousedown = t.daySelectionMousedown;
 	var formatDate = calendar.formatDate;
-	var inInterval = calendar.inInterval;
+	var getIntervalClass = t.getIntervalClass;
+	var setIntervalClass = t.setIntervalClass;
 	
 	
 	// locals
@@ -189,20 +190,7 @@ function BasicView(element, calendar, viewName) {
 						.removeClass('fc-today')
 						.removeClass(tm + '-state-highlight');
 				}
-				var mode = inInterval(d,'day');
-				if(mode == 2){
-					$(td).removeClass('fc-not-in-interval')
-						.removeClass('fc-partly-in-interval')
-						.addClass('fc-in-interval');
-				}else if(mode == 1){
-					$(td).removeClass('fc-in-interval')
-						.removeClass('fc-not-in-interval')
-						.addClass('fc-partly-in-interval');
-				}else{
-					$(td).removeClass('fc-in-interval')
-						.removeClass('fc-partly-in-interval')
-						.addClass('fc-not-in-interval');
-				}
+				setIntervalClass(td,d,'day');
 				td.find('div.fc-day-number').text(d.getDate());
 				addDays(d, 1);
 				if (nwe) {
@@ -239,19 +227,7 @@ function BasicView(element, calendar, viewName) {
 		
 	}
 
-	function getIntervalClass(start,end) {
-		var mode = inInterval(start,end);
-		switch(mode){
-			case 2:
-				return 'fc-in-interval';
-			case 1:
-				return 'fc-partly-in-interval';
-			default:
-				return 'fc-not-in-interval';
-		}
-	}
-	
-	
+
 	function setHeight(height) {
 		viewHeight = height;
 		var leftTDs = tbody.find('tr td:first-child'),

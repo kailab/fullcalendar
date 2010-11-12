@@ -19,13 +19,8 @@ function View(element, calendar, viewName) {
 	t.hideEvents = hideEvents;
 	t.eventDrop = eventDrop;
 	t.eventResize = eventResize;
-	t.reportIntervals = reportIntervals;
-	t.intervalEnd = intervalEnd;
-	t.reportIntervalElement = reportIntervalElement;
-	t.reportIntervalClear = reportIntervalClear;
-	t.intervalElementHandlers = intervalElementHandlers;
-	t.showIntervals = showIntervals;
-	t.hideIntervals = hideIntervals;
+	t.getIntervalClass = getIntervalClass;
+	t.setIntervalClass = setIntervalClass;
 	// t.title
 	// t.start, t.end
 	// t.visStart, t.visEnd
@@ -35,9 +30,7 @@ function View(element, calendar, viewName) {
 	var defaultEventEnd = t.defaultEventEnd;
 	var normalizeEvent = calendar.normalizeEvent; // in EventManager
 	var reportEventChange = calendar.reportEventChange;
-	var defaultIntervalEnd = t.defaultIntervalEnd;
-	var normalizeInterval = calendar.normalizeInterval; // in IntervalManager
-	var reportIntervalChange = calendar.reportIntervalChange;
+	var inInterval = calendar.inInterval; // in IntervalManager
 	
 	// locals
 	var eventsByID = {};
@@ -238,9 +231,9 @@ function View(element, calendar, viewName) {
 
 
 
-
-	/* Interval Data
+	/* Intervals
 	------------------------------------------------------------------------------*/
+	
 	
 	
 	// report when view receives new intervals
@@ -258,73 +251,37 @@ function View(element, calendar, viewName) {
 	}
 	
 	
-	// returns a Date object for an interval's end
-	function intervalEnd(interval) {
-		return interval.end ? cloneDate(interval.end) : defaultIntervalEnd(interval);
+	function getIntervalClass(start,end) {
+		var mode = inInterval(start,end);
+		switch(mode){
+			case 2:
+				return 'fc-in-interval';
+			case 1:
+				return 'fc-partly-in-interval';
+			default:
+				return 'fc-not-in-interval';
+		}
 	}
 
-	/* Interval Elements
-	------------------------------------------------------------------------------*/
-	
-	
-	// report when view creates an element for an interval
-	function reportIntervalElement(interval, element) {
-		intervalElements.push(element);
-		if (intervalElementsByID[interval._id]) {
-			intervalElementsByID[interval._id].push(element);
+	function setIntervalClass(elm,start,end) {
+		var mode = inInterval(start,end);
+		if(mode == 2){
+			$(elm).removeClass('fc-not-in-interval')
+				.removeClass('fc-partly-in-interval')
+				.addClass('fc-in-interval');
+		}else if(mode == 1){
+			$(elm).removeClass('fc-in-interval')
+				.removeClass('fc-not-in-interval')
+				.addClass('fc-partly-in-interval');
 		}else{
-			intervalElementsByID[interval._id] = [element];
+			$(elm).removeClass('fc-in-interval')
+				.removeClass('fc-partly-in-interval')
+				.addClass('fc-not-in-interval');
 		}
+
+
 	}
 	
-	
-	function reportIntervalClear() {
-		intervalElements = [];
-		intervalElementsByID = {};
-	}
-	
-	
-	// attaches intervalClick, intervalMouseover, intervalMouseout
-	function intervalElementHandlers(interval, intervalElement) {
-		intervalElement
-			.click(function(ev) {
-				if (!intervalElement.hasClass('ui-draggable-dragging') &&
-					!intervalElement.hasClass('ui-resizable-resizing')) {
-						return trigger('intervalClick', this, interval, ev);
-					}
-			})
-			.hover(
-				function(ev) {
-					trigger('intervalMouseover', this, interval, ev);
-				},
-				function(ev) {
-					trigger('intervalMouseout', this, interval, ev);
-				}
-			);
-		// TODO: don't fire intervalMouseover/intervalMouseout *while* dragging is occuring (on subject element)
-		// TODO: same for resizing
-	}
-	
-	
-	function showIntervals(interval, exceptElement) {
-		eachIntervalElement(interval, exceptElement, 'show');
-	}
-	
-	
-	function hideIntervals(interval, exceptElement) {
-		eachIntervalElement(interval, exceptElement, 'hide');
-	}
-	
-	
-	function eachIntervalElement(interval, exceptElement, funcName) {
-		var elements = intervalElementsByID[interval._id],
-			i, len = elements.length;
-		for (i=0; i<len; i++) {
-			if (elements[i][0] != exceptElement[0]) {
-				elements[i][funcName]();
-			}
-		}
-	}
 	
 
 }

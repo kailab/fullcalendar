@@ -69,9 +69,9 @@ function AgendaView(element, calendar, viewName) {
 	var daySelectionMousedown = t.daySelectionMousedown;
 	var slotSegHtml = t.slotSegHtml;
 	var formatDate = calendar.formatDate;
-	var inInterval = calendar.inInterval;
+	var getIntervalClass = t.getIntervalClass;
+	var setIntervalClass = t.setIntervalClass;
 	var getIntervals = calendar.getIntervals;
-	
 	
 	// locals
 	var head, body, bodyContent, bodyTable, bg;
@@ -231,20 +231,7 @@ function AgendaView(element, calendar, viewName) {
 
 			d = cloneDate(d0);
 			head.find('tr.fc-all-day td').each(function(i,td) {
-				var mode = inInterval(d,'day');
-				if(mode == 2){
-					$(td).removeClass('fc-not-in-interval')
-						.removeClass('fc-partly-in-interval')
-						.addClass('fc-in-interval');
-				}else if(mode == 1){
-					$(td).removeClass('fc-in-interval')
-						.removeClass('fc-not-in-interval')
-						.addClass('fc-partly-in-interval');
-				}else{
-					$(td).removeClass('fc-in-interval')
-						.removeClass('fc-partly-in-interval')
-						.addClass('fc-not-in-interval');
-				}
+				setIntervalClass(td,d,'day');
 				addDays(d, dis);
 				if (nwe) {
 					skipWeekend(d, dis);
@@ -747,19 +734,6 @@ function AgendaView(element, calendar, viewName) {
 	--------------------------------------------------------------------------------*/
 
 
-	function getIntervalClass(start,end) {
-		var mode = inInterval(start,end);
-		switch(mode){
-			case 2:
-				return 'fc-in-interval';
-			case 1:
-				return 'fc-partly-in-interval';
-			default:
-				return 'fc-not-in-interval';
-		}
-	}
-
-
 	function renderIntervals() {
 		bodyContent.find('.fc-not-in-interval').remove();
 		var intervals = getIntervals();
@@ -791,7 +765,7 @@ function AgendaView(element, calendar, viewName) {
 				rect.top = top;
 				rect.height = bottom - top;
 				// high z-index blocks selection
-				var block = $("<div class='fc-not-in-interval' style='position:absolute;z-index:4'/>");
+				var block = $("<div class='fc-not-in-interval' style='position:absolute;z-index:-3'/>");
 				block.css(rect).appendTo(bodyContent);
 			}
 			addDays(dayStart, 1);
