@@ -16,7 +16,7 @@ function IntervalOverlayManager() {
 	function renderIntervalOverlay(rect, parent) {
 		var e = unusedOverlays.shift();
 		if (!e) {
-			e = $("<div class='fc-not-in-interval' style='position:absolute;z-index:3'/>");
+			e = $("<div class='fc-not-in-interval' style='position:absolute;z-index:-2'/>");
 		}
 		if (e[0].parentNode != parent[0]) {
 			e.appendTo(parent);

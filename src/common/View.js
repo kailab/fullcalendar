@@ -25,6 +25,7 @@ function View(element, calendar, viewName) {
 	t.getInterval = getInterval;
 	t.reportIntervalClear = reportIntervalClear;
 	t.getIntervals = getIntervals;
+	t.reduceToInterval = reduceToInterval;
 	// t.title
 	// t.start, t.end
 	// t.visStart, t.visEnd
@@ -273,13 +274,13 @@ function View(element, calendar, viewName) {
 		}else if(typeof end == 'integer'){
 			// end is difference in seconds
 			end = new Date(start.getTime()+(end*1000));
-		}else{
-            end = new Date(end);
-        }
+        }else if(end === undefined){
+			end = start;
+		}
 		var interval = { mode: 0 };
 		$.each(intervalsByID, function(id,intervals) {
 			$.each(intervals, function() {
-				if(interval.mode < 2 && start >= this.start && end <= this.end){
+				if(interval.mode < 2 && start >= this.start && end <= this.end ){
 					interval = this
 					// interval completely in
 					interval.mode = 2;
@@ -287,7 +288,7 @@ function View(element, calendar, viewName) {
 					interval = this
 					// interval partly in
 					interval.mode = 1;
-				}else if(interval.mode < 1 && end > this.start && end < this.end){
+				}else if(interval.mode < 1 && end > this.start && end < this.end ){
 					interval = this
 					// interval partly in
 					interval.mode = 1;
@@ -301,6 +302,30 @@ function View(element, calendar, viewName) {
         interval = getInterval(start,end);
         return interval.mode;
 	}
-	
+
+	function reduceToInterval(start,end,mode) {
+		if(mode == undefined){
+			mode = opt('selectableOnlyIntervals');
+		}
+		if(mode === true){
+			mode = 2;
+		}
+		var interval = {}
+		var position = start;
+		do{
+			interval = getInterval(position);
+			if(interval.mode < mode){
+				break;
+			}
+			if(interval.end <= position){
+				break;
+			}
+			position = interval.end;
+		}while(true);
+		if(position > end){
+			position = end;
+		}
+		return position;
+	}
 
 }

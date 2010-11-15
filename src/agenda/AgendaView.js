@@ -75,6 +75,7 @@ function AgendaView(element, calendar, viewName) {
 	var slotSegHtml = t.slotSegHtml;
 	var formatDate = calendar.formatDate;
 	var renderIntervals = t.renderIntervals;
+	var reduceToInterval = t.reduceToInterval;
 	
 	// locals
 	var head, body, bodyContent, bodyTable, bg;
@@ -400,6 +401,7 @@ function AgendaView(element, calendar, viewName) {
 		if (refreshCoordinateGrid) {
 			coordinateGrid.build();
 		}
+		endDate = reduceToInterval(startDate,endDate);
 		var visStart = cloneDate(t.visStart);
 		var startCol, endCol;
 		if (rtl) {
@@ -426,6 +428,7 @@ function AgendaView(element, calendar, viewName) {
 	
 
 	function renderSlotOverlay(overlayStart, overlayEnd) {
+		overlayEnd = reduceToInterval(overlayStart,overlayEnd);
 		var dayStart = cloneDate(t.visStart);
 		var dayEnd = addDays(cloneDate(dayStart), 1);
 		for (var i=0; i<colCnt; i++) {
