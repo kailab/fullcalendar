@@ -46,32 +46,35 @@ function AgendaView(element, calendar, viewName) {
 	t.getColCnt = function() { return colCnt };
 	t.getColWidth = function() { return colWidth };
 	t.getSlotHeight = function() { return slotHeight };
+	t.getTableHead = function() { return head };
 	t.defaultSelectionEnd = defaultSelectionEnd;
 	t.renderDayOverlay = renderDayOverlay;
 	t.renderSelection = renderSelection;
 	t.clearSelection = clearSelection;
 	t.dragStart = dragStart;
 	t.dragStop = dragStop;
-	
+	t.renderOutsideInterval = renderOutsideInterval;
 	
 	// imports
 	View.call(t, element, calendar, viewName);
 	OverlayManager.call(t);
+	IntervalOverlayManager.call(t);
 	SelectionManager.call(t);
 	AgendaEventRenderer.call(t);
+	AgendaIntervalRenderer.call(t);
 	var opt = t.opt;
 	var trigger = t.trigger;
 	var clearEvents = t.clearEvents;
 	var renderOverlay = t.renderOverlay;
 	var clearOverlays = t.clearOverlays;
+	var renderIntervalOverlay = t.renderIntervalOverlay;
+	var clearIntervalOverlays = t.clearIntervalOverlays;
 	var reportSelection = t.reportSelection;
 	var unselect = t.unselect;
 	var daySelectionMousedown = t.daySelectionMousedown;
 	var slotSegHtml = t.slotSegHtml;
 	var formatDate = calendar.formatDate;
-	var getIntervalClass = t.getIntervalClass;
-	var setIntervalClass = t.setIntervalClass;
-	var getIntervals = calendar.getIntervals;
+	var renderIntervals = t.renderIntervals;
 	
 	// locals
 	var head, body, bodyContent, bodyTable, bg;
@@ -152,7 +155,7 @@ function AgendaView(element, calendar, viewName) {
 						"<th class='fc-axis fc-leftmost " + tm + "-state-default'>" + opt('allDayText') + "</th>";
 				d = cloneDate(d0);
 				for(i=0;i<colCnt;i++){
-					s += "<td class='" + getIntervalClass(d,'day') + ' '+tm + "-state-default'>" +
+					s += "<td class='" + tm + "-state-default'>" +
 						"<div class='fc-day-content'><div style='position:relative'>&nbsp;</div></div></td>";
 					addDays(d, dis);
 					if (nwe) {
@@ -214,7 +217,7 @@ function AgendaView(element, calendar, viewName) {
 			}
 			s += "</tr></table></div>";
 			bg = $(s).appendTo(element);
-			
+
 		}else{ // skeleton already built, just modify it
 		
 			clearEvents();
@@ -229,15 +232,6 @@ function AgendaView(element, calendar, viewName) {
 				}
 			});
 
-			d = cloneDate(d0);
-			head.find('tr.fc-all-day td').each(function(i,td) {
-				setIntervalClass(td,d,'day');
-				addDays(d, dis);
-				if (nwe) {
-					skipWeekend(d, dis);
-				}
-			});
-			
 			// change classes of background stripes
 			d = cloneDate(d0);
 			bg.find('td').each(function(i, td) {
@@ -260,8 +254,6 @@ function AgendaView(element, calendar, viewName) {
 			});
 		
 		}
-		
-		renderIntervals();
 	}
 	
 	
@@ -733,30 +725,14 @@ function AgendaView(element, calendar, viewName) {
 	/* Interval Helpers
 	--------------------------------------------------------------------------------*/
 
-
-	function renderIntervals() {
-		bodyContent.find('.fc-not-in-interval').remove();
-		var intervals = getIntervals();
-		var start = t.visStart;
-		var end = start;
-		$.each(intervals,function(i,interval) {
-			end = interval.start
-			renderNotInInterval(start, end);
-			start = interval.end;
-		});
-		renderNotInInterval(start, t.visEnd);
-	}
-
-	function renderNotInInterval(startDate, endDate) {
+	function renderOutsideInterval(overlayStart,overlayEnd)
+	{
 		coordinateGrid.build();
 		var dayStart = cloneDate(t.visStart);
 		var dayEnd = addDays(cloneDate(dayStart), 1);
-		if(startDate >= endDate){
-			return;
-		}
 		for (var i=0; i<colCnt; i++) {
-			var stretchStart = new Date(Math.max(dayStart, startDate));
-			var stretchEnd = new Date(Math.min(dayEnd, endDate));
+			var stretchStart = new Date(Math.max(dayStart, overlayStart));
+			var stretchEnd = new Date(Math.min(dayEnd, overlayEnd));
 			if (stretchStart < stretchEnd) {
 				var col = i*dis+dit;
 				var rect = coordinateGrid.rect(0, col, 0, col, bodyContent); // only use it for horizontal coords
@@ -764,12 +740,12 @@ function AgendaView(element, calendar, viewName) {
 				var bottom = timePosition(dayStart, stretchEnd);
 				rect.top = top;
 				rect.height = bottom - top;
-				// high z-index blocks selection
-				var block = $("<div class='fc-not-in-interval' style='position:absolute;z-index:-3'/>");
-				block.css(rect).appendTo(bodyContent);
+			    renderIntervalOverlay(rect, bodyContent)
 			}
 			addDays(dayStart, 1);
 			addDays(dayEnd, 1);
 		}
+
 	}
+
 }

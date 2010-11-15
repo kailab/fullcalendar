@@ -48,16 +48,19 @@ js('basic/BasicWeekView.js');
 js('basic/BasicDayView.js');
 js('basic/BasicView.js');
 js('basic/BasicEventRenderer.js');
+js('basic/BasicIntervalRenderer.js');
 
 js('agenda/AgendaWeekView.js');
 js('agenda/AgendaDayView.js');
 js('agenda/AgendaView.js');
 js('agenda/AgendaEventRenderer.js');
+js('agenda/AgendaIntervalRenderer.js');
 
 js('common/View.js');
 js('common/DayEventRenderer.js');
 js('common/SelectionManager.js');
 js('common/OverlayManager.js');
+js('common/IntervalOverlayManager.js');
 js('common/CoordinateGrid.js');
 js('common/HoverListener.js');
 js('common/HorizontalPositionCache.js');

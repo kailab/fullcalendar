@@ -19,8 +19,12 @@ function View(element, calendar, viewName) {
 	t.hideEvents = hideEvents;
 	t.eventDrop = eventDrop;
 	t.eventResize = eventResize;
-	t.getIntervalClass = getIntervalClass;
-	t.setIntervalClass = setIntervalClass;
+	t.clearIntervals = clearIntervals;
+	t.reportIntervals = reportIntervals;
+	t.inInterval = inInterval;
+	t.getInterval = getInterval;
+	t.reportIntervalClear = reportIntervalClear;
+	t.getIntervals = getIntervals;
 	// t.title
 	// t.start, t.end
 	// t.visStart, t.visEnd
@@ -30,15 +34,12 @@ function View(element, calendar, viewName) {
 	var defaultEventEnd = t.defaultEventEnd;
 	var normalizeEvent = calendar.normalizeEvent; // in EventManager
 	var reportEventChange = calendar.reportEventChange;
-	var inInterval = calendar.inInterval; // in IntervalManager
 	
 	// locals
 	var eventsByID = {};
 	var eventElements = [];
 	var eventElementsByID = {};
 	var intervalsByID = {};
-	var intervalElements = [];
-	var intervalElementsByID = {};
 	var options = calendar.options;
 	
 	
@@ -234,8 +235,6 @@ function View(element, calendar, viewName) {
 	/* Intervals
 	------------------------------------------------------------------------------*/
 	
-	
-	
 	// report when view receives new intervals
 	function reportIntervals(intervals) { // intervals are already normalized at this point
 		intervalsByID = {};
@@ -249,39 +248,59 @@ function View(element, calendar, viewName) {
 			}
 		}
 	}
-	
-	
-	function getIntervalClass(start,end) {
-		var mode = inInterval(start,end);
-		switch(mode){
-			case 2:
-				return 'fc-in-interval';
-			case 1:
-				return 'fc-partly-in-interval';
-			default:
-				return 'fc-not-in-interval';
-		}
+
+	function clearIntervals() {
+		intervalsByID = {};
 	}
 
-	function setIntervalClass(elm,start,end) {
-		var mode = inInterval(start,end);
-		if(mode == 2){
-			$(elm).removeClass('fc-not-in-interval')
-				.removeClass('fc-partly-in-interval')
-				.addClass('fc-in-interval');
-		}else if(mode == 1){
-			$(elm).removeClass('fc-in-interval')
-				.removeClass('fc-not-in-interval')
-				.addClass('fc-partly-in-interval');
+	function reportIntervalClear() {
+		clearIntervals();
+	}
+
+	function getIntervals() {
+		return intervals;
+	}
+
+	function getInterval(start,end) {
+		if(typeof end == 'string'){
+			var d = 0;
+			switch(end){
+				case 'day':
+					d = 86400000;
+					break;
+			}
+			end = new Date(start.getTime()+d);
+		}else if(typeof end == 'integer'){
+			// end is difference in seconds
+			end = new Date(start.getTime()+(end*1000));
 		}else{
-			$(elm).removeClass('fc-in-interval')
-				.removeClass('fc-partly-in-interval')
-				.addClass('fc-not-in-interval');
-		}
-
-
+            end = new Date(end);
+        }
+		var interval = { mode: 0 };
+		$.each(intervalsByID, function(id,intervals) {
+			$.each(intervals, function() {
+				if(interval.mode < 2 && start >= this.start && end <= this.end){
+					interval = this
+					// interval completely in
+					interval.mode = 2;
+				}else if(interval.mode < 1 && start > this.start && start < this.end){
+					interval = this
+					// interval partly in
+					interval.mode = 1;
+				}else if(interval.mode < 1 && end > this.start && end < this.end){
+					interval = this
+					// interval partly in
+					interval.mode = 1;
+				}
+			});
+		});
+		return interval;
 	}
-	
+
+	function inInterval(start,end) {
+        interval = getInterval(start,end);
+        return interval.mode;
+	}
 	
 
 }

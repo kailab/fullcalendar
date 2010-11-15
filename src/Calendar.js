@@ -12,8 +12,7 @@ function Calendar(element, options, eventSources, intervalSources) {
 	t.reportEvents = reportEvents;
 	t.reportEventChange = reportEventChange;
 	t.reportIntervals = reportIntervals;
-	t.inInterval = inInterval;
-	t.getIntervals = getIntervals;
+	t.refetchIntervals = refetchIntervals;
 	t.changeView = changeView;
 	t.select = select;
 	t.unselect = unselect;
@@ -55,7 +54,6 @@ function Calendar(element, options, eventSources, intervalSources) {
 	var ignoreWindowResize = 0;
 	var date = new Date();
 	var events = [];
-	var viewInc = 0;
 	
 	
 	
@@ -188,20 +186,7 @@ function Calendar(element, options, eventSources, intervalSources) {
 		}
 	}
 	
-	
-	
 	function renderView(inc) {
-		if (!currentView.start || inc || date < currentView.start || date >= currentView.end) {
-			// view must refetch intervals before rendering
-			updateIntervals(inc);
-		}else{
-			doRenderView(inc);
-		}
-	}
-
-	
-
-	function doRenderView(inc) {
 		if (elementVisible()) {
 			ignoreWindowResize++; // because renderEvents might temporarily change the height before setSize is reached
 
@@ -215,6 +200,7 @@ function Calendar(element, options, eventSources, intervalSources) {
 			if (!currentView.start || inc || date < currentView.start || date >= currentView.end) {
 				// view must render an entire new date range (and refetch/render events)
 				currentView.render(date, inc || 0); // responsible for clearing events
+				// view must refetch intervals before rendering
 				setSize(true);
 				forceEventRender = true;
 			}
@@ -231,6 +217,7 @@ function Calendar(element, options, eventSources, intervalSources) {
 			currentView.sizeDirty = false;
 			currentView.eventsDirty = false;
 			updateEvents(forceEventRender);
+			updateIntervals();
 			
 			elementOuterWidth = element.outerWidth();
 			
@@ -375,60 +362,28 @@ function Calendar(element, options, eventSources, intervalSources) {
 	-----------------------------------------------------------------------------*/
 
 	function updateIntervals(inc) {
-		viewInc = inc;
+		fetchIntervals(currentView.visStart, currentView.visEnd); // will call reportIntervals
+	}
+
+	function refetchIntervals() {
 		fetchIntervals(currentView.visStart, currentView.visEnd); // will call reportIntervals
 	}
 
 	// called when interval data arrives
 	function reportIntervals(_intervals) {
 		intervals = _intervals;
-		// render view with intervals and load events
-		doRenderView(viewInc);
+		rerenderIntervals();
 	}
 
-	function getIntervals() {
-		return intervals;
+	// attempts to rerender intervals
+	function rerenderIntervals() {
+		if (elementVisible()) {
+			currentView.clearIntervals();
+			currentView.renderIntervals(intervals);
+		}
 	}
 
-	function getInterval(start,end) {
-		if(typeof end == 'string'){
-			var d = 0;
-			switch(end){
-				case 'day':
-					d = 86400000;
-					break;
-			}
-			end = new Date(start.getTime()+d);
-		}else if(typeof end == 'integer'){
-			// end is difference in seconds
-			end = new Date(start.getTime()+(end*1000));
-		}else{
-            end = new Date(end);
-        }
-		var interval = { mode: 0 };
-		$.each(intervals, function() {
-			if(interval.mode < 2 && start >= this.start && end <= this.end){
-                interval = this
-                // interval completely in
-                interval.mode = 2;
-			}else if(interval.mode < 1 && start > this.start && start < this.end){
-                interval = this
-                // interval partly in
-                interval.mode = 1;
-			}else if(interval.mode < 1 && end > this.start && end < this.end){
-                interval = this
-                // interval partly in
-                interval.mode = 1;
-            }
 
-		});
-		return interval;
-	}
-
-	function inInterval(start,end) {
-        interval = getInterval(start,end);
-        return interval.mode;
-	}
 
 	/* Selection
 	-----------------------------------------------------------------------------*/
