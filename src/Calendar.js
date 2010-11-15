@@ -370,13 +370,12 @@ function Calendar(element, options, eventSources, intervalSources) {
 	}
 
 	// called when interval data arrives
-	function reportIntervals(_intervals) {
-		intervals = _intervals;
-		rerenderIntervals();
+	function reportIntervals(intervals) {
+		rerenderIntervals(intervals);
 	}
 
 	// attempts to rerender intervals
-	function rerenderIntervals() {
+	function rerenderIntervals(intervals) {
 		if (elementVisible()) {
 			currentView.clearIntervals();
 			currentView.renderIntervals(intervals);

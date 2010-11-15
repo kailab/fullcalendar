@@ -24,7 +24,6 @@ function View(element, calendar, viewName) {
 	t.inInterval = inInterval;
 	t.getInterval = getInterval;
 	t.reportIntervalClear = reportIntervalClear;
-	t.getIntervals = getIntervals;
 	t.reduceToInterval = reduceToInterval;
 	// t.title
 	// t.start, t.end
@@ -258,10 +257,6 @@ function View(element, calendar, viewName) {
 		clearIntervals();
 	}
 
-	function getIntervals() {
-		return intervals;
-	}
-
 	function getInterval(start,end) {
 		if(typeof end == 'string'){
 			var d = 0;
@@ -299,13 +294,16 @@ function View(element, calendar, viewName) {
 	}
 
 	function inInterval(start,end) {
-        interval = getInterval(start,end);
+        var interval = getInterval(start,end);
         return interval.mode;
 	}
 
 	function reduceToInterval(start,end,mode) {
-		if(mode == undefined){
+		if(mode === undefined){
 			mode = opt('selectableOnlyIntervals');
+		}
+		if(mode === undefined){
+			return end;
 		}
 		if(mode === true){
 			mode = 2;
@@ -314,6 +312,9 @@ function View(element, calendar, viewName) {
 		var position = start;
 		do{
 			interval = getInterval(position);
+			if(interval.mode == 0){
+				break;
+			}
 			if(interval.mode < mode){
 				break;
 			}

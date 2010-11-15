@@ -6,7 +6,6 @@ function AgendaIntervalRenderer() {
 	// exports
 	t.renderIntervals = renderIntervals;
 	t.clearIntervals = clearIntervals;
-	t.getIntervalClass = getIntervalClass;
 	t.setIntervalClass = setIntervalClass;
 	
 	// imports
@@ -24,18 +23,6 @@ function AgendaIntervalRenderer() {
 	/* Rendering
 	--------------------------------------------------------------------*/
 
-
-	function getIntervalClass(start,end) {
-		var mode = inInterval(start,end);
-		switch(mode){
-			case 2:
-				return 'fc-in-interval';
-			case 1:
-				return 'fc-partly-in-interval';
-			default:
-				return 'fc-not-in-interval';
-		}
-	}
 
 	function setIntervalClass(elm,start,end) {
 		var mode = inInterval(start,end);

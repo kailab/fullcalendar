@@ -45,3 +45,18 @@ Here is an example of doing it within an element having an `id` of `calendar`:
 	});
 	
 To see a full list of all available options, please consult the [FullCalendar documentation &raquo;](http://arshaw.com/fullcalendar/docs/)
+
+Additional Options
+------------------
+
+This version (mi) has some aditional options to allow for interval definition.
+
+	$(document).ready(function() {
+	
+		$('#calendar').fullCalendar({
+			intervals: [], // array or url
+			selectableOnlyIntervals: true, // only allow selection of allowed intervals
+		});
+	
+	});
+	

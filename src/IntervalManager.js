@@ -29,8 +29,7 @@ function IntervalManager(options, sources) {
 	var loadingLevel = 0;
 	var dynamicIntervalSource = [];
 	var cache = [];
-	
-	
+
 	/* Fetching
 	-----------------------------------------------------------------------------*/
 
@@ -43,7 +42,13 @@ function IntervalManager(options, sources) {
 		rangeEnd = end;
 		currentFetchID++;
 		cache = [];
-		pendingSourceCnt = sources.length;
+		pendingSourceCnt = 0;
+		// do not count empty array sources
+		$.each(sources,function(){
+			if(!$.isArray(this) || this.length > 0){
+				pendingSourceCnt++;
+			}
+		});
 		for (var i=0; i<sources.length; i++) {
 			fetchIntervalSource(sources[i], currentFetchID);
 		}
