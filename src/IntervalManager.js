@@ -50,7 +50,9 @@ function IntervalManager(options, sources) {
 			}
 		});
 		for (var i=0; i<sources.length; i++) {
-			fetchIntervalSource(sources[i], currentFetchID);
+			if(!$.isArray(sources[i]) || sources[i].length > 0){
+				fetchIntervalSource(sources[i], currentFetchID);
+			}
 		}
 	}
 	

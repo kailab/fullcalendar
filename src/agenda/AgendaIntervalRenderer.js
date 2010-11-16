@@ -58,15 +58,32 @@ function AgendaIntervalRenderer() {
 		});
 
 		// not in interval overlays
-		var start = cloneDate(t.visStart);
-		var end = 0;
-		$.each(intervals,function(){
-			end = this.start;
-			renderOutsideInterval(start,end);
-			start = this.end;
+		var outsides = getOutsideIntervals(intervals);
+		$.each(outsides,function(){
+			renderOutsideInterval(this.start,this.end);
 		});
-		end = cloneDate(t.visEnd);
-		renderOutsideInterval(start,end);
+	}
+
+	// returns the parts without intervals
+	function getOutsideIntervals(intervals) {
+		var outsides = [{start:t.visStart,end:t.visEnd}];
+		$.each(intervals,function(i,interval){
+			$.each(outsides,function(j,outside){
+				var outside = outsides[j];
+				if(outside.start<=interval.start && outside.end>=interval.end){
+					outsides.splice(j);
+					outsides.push({
+						start: 	outside.start,
+						end:	interval.start
+					});
+					outsides.push({
+						start: 	interval.end,
+						end:	outside.end
+					});
+				}
+			});
+		});
+		return outsides;
 	}
 
 	function clearIntervals() {
