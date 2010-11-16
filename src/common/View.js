@@ -275,17 +275,21 @@ function View(element, calendar, viewName) {
 		var interval = { mode: 0 };
 		$.each(intervalsByID, function(id,intervals) {
 			$.each(intervals, function() {
-				if(interval.mode < 2 && start >= this.start && end <= this.end ){
+				if(interval.mode < 4 && start >= this.start && end <= this.end ){
 					interval = this
 					// interval completely in
-					interval.mode = 2;
-				}else if(interval.mode < 1 && start > this.start && start < this.end){
+					interval.mode = 4;
+				}else if(interval.mode < 3 && start <= this.start && end >= this.end){
+					// interval completely out
 					interval = this
-					// interval partly in
-					interval.mode = 1;
+					interval.mode = 3;
+				}else if(interval.mode < 2 && start > this.start && start < this.end){
+					interval = this
+					// interval partly in start
+					interval.mode = 2;
 				}else if(interval.mode < 1 && end > this.start && end < this.end ){
 					interval = this
-					// interval partly in
+					// interval partly in end
 					interval.mode = 1;
 				}
 			});

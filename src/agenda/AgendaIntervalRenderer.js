@@ -26,11 +26,11 @@ function AgendaIntervalRenderer() {
 
 	function setIntervalClass(elm,start,end) {
 		var mode = inInterval(start,end);
-		if(mode == 2){
+		if(mode == 4){
 			$(elm).removeClass('fc-not-in-interval')
 				.removeClass('fc-partly-in-interval')
 				.addClass('fc-in-interval');
-		}else if(mode == 1){
+		}else if(mode > 0){
 			$(elm).removeClass('fc-in-interval')
 				.removeClass('fc-not-in-interval')
 				.addClass('fc-partly-in-interval');
@@ -69,17 +69,24 @@ function AgendaIntervalRenderer() {
 		var outsides = [{start:t.visStart,end:t.visEnd}];
 		$.each(intervals,function(i,interval){
 			$.each(outsides,function(j,outside){
-				var outside = outsides[j];
+				if(!$.isPlainObject(outside) || !$.isPlainObject(interval)){
+					return;
+				}
 				if(outside.start<=interval.start && outside.end>=interval.end){
-					outsides.splice(j);
-					outsides.push({
+					outsides[j] = {
 						start: 	outside.start,
 						end:	interval.start
-					});
+					};
 					outsides.push({
 						start: 	interval.end,
 						end:	outside.end
 					});
+				}else if(outside.start>=interval.start && outside.end<=interval.end){
+					outsides.splice(j);
+				}else if(outside.start<=interval.end && outside.end>=interval.end){
+					outsides[j].start = interval.end;
+				}else if(outside.end>=interval.start && outside.end<=interval.end){
+					outsides[j].end = interval.start;
 				}
 			});
 		});

@@ -25,11 +25,11 @@ function BasicIntervalRenderer() {
 
 	function setIntervalClass(elm,start,end) {
 		var mode = inInterval(start,end);
-		if(mode == 2){
+		if(mode == 4){
 			$(elm).removeClass('fc-not-in-interval')
 				.removeClass('fc-partly-in-interval')
 				.addClass('fc-in-interval');
-		}else if(mode == 1){
+		}else if(mode >0){
 			$(elm).removeClass('fc-in-interval')
 				.removeClass('fc-not-in-interval')
 				.addClass('fc-partly-in-interval');
