@@ -75,15 +75,15 @@ function AgendaIntervalRenderer() {
 				if(outside.start<=interval.start && outside.end>=interval.end){
 					outsides[j] = {
 						start: 	outside.start,
-						end:	interval.start
+						end:    interval.start
 					};
 					outsides.push({
 						start: 	interval.end,
-						end:	outside.end
+						end:    outside.end
 					});
 				}else if(outside.start>=interval.start && outside.end<=interval.end){
-					outsides.splice(j);
-				}else if(outside.start<=interval.end && outside.end>=interval.end){
+					outsides.splice(j,1);
+				}else if(outside.start<=interval.end && outside.start>=interval.start){
 					outsides[j].start = interval.end;
 				}else if(outside.end>=interval.start && outside.end<=interval.end){
 					outsides[j].end = interval.start;
