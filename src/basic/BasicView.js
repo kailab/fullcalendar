@@ -48,7 +48,6 @@ function BasicView(element, calendar, viewName) {
 	var clearOverlays = t.clearOverlays;
 	var daySelectionMousedown = t.daySelectionMousedown;
 	var formatDate = calendar.formatDate;
-	var reduceToInterval = t.reduceToInterval;
 	
 	
 	// locals
@@ -298,7 +297,6 @@ function BasicView(element, calendar, viewName) {
 		}
 		var rowStart = cloneDate(t.visStart);
 		var rowEnd = addDays(cloneDate(rowStart), colCnt);
-		overlayEnd = reduceToInterval(overlayStart,overlayEnd);
 		for (var i=0; i<rowCnt; i++) {
 			var stretchStart = new Date(Math.max(rowStart, overlayStart));
 			var stretchEnd = new Date(Math.min(rowEnd, overlayEnd));

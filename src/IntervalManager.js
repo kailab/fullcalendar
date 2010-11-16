@@ -55,6 +55,12 @@ function IntervalManager(options, sources) {
 			}
 		}
 	}
+
+	function reportCacheIntervals()
+	{
+		var fixedCache = fixOverlappingIntervals(cache);
+		reportIntervals(fixedCache);
+	}
 	
 	
 	function fetchIntervalSource(source, fetchID) {
@@ -67,7 +73,7 @@ function IntervalManager(options, sources) {
 				cache = cache.concat(intervals);
 				pendingSourceCnt--;
 				if (!pendingSourceCnt) {
-					reportIntervals(cache);
+					reportCacheIntervals();
 				}
 			}
 		});
@@ -131,7 +137,7 @@ function IntervalManager(options, sources) {
 		cache = $.grep(cache, function(e) {
 			return e.source != source;
 		});
-		reportIntervals(cache);
+		reportCacheIntervals();
 	}
 	
 	
@@ -160,16 +166,11 @@ function IntervalManager(options, sources) {
 				}else{
 					e.end = null;
 				}
-				e.title = interval.title;
-				e.url = interval.url;
-				e.allDay = interval.allDay;
-				e.className = interval.className;
-				e.editable = interval.editable;
 				normalizeInterval(e);
 			}
 		}
 		normalizeInterval(interval);
-		reportIntervals(cache);
+		reportCacheIntervals();
 	}
 	
 	
@@ -182,7 +183,7 @@ function IntervalManager(options, sources) {
 			}
 			cache.push(interval);
 		}
-		reportIntervals(cache);
+		reportCacheIntervals();
 	}
 	
 	
@@ -210,7 +211,7 @@ function IntervalManager(options, sources) {
 				}
 			}
 		}
-		reportIntervals(cache);
+		reportCacheIntervals();
 	}
 	
 	
@@ -253,7 +254,6 @@ function IntervalManager(options, sources) {
 	
 	
 	function normalizeInterval(interval) {
-		interval._id = interval._id || (interval.id === undefined ? '_fc' + intervalGUID++ : interval.id + '');
 		if (interval.date) {
 			if (!interval.start) {
 				interval.start = interval.date;
@@ -266,17 +266,29 @@ function IntervalManager(options, sources) {
 			interval.end = null;
 		}
 		interval._end = interval.end ? cloneDate(interval.end) : null;
-		if (interval.className) {
-			if (typeof interval.className == 'string') {
-				interval.className = interval.className.split(/\s+/);
-			}
-		}else{
-			interval.className = [];
-		}
 		// TODO: if there is no start date, return false to indicate an invalid interval
 	}
 
-  /* Interval Check
-	-----------------------------------------------------------------------------*/
-
+	function fixOverlappingIntervals(intervals) {
+		var fixed = $.extend([],intervals);
+		// fix overlapping intervals
+		for(var i=0; i<fixed.length; i++){
+			for(var j=0; j<fixed.length; j++){
+				if(i==j){
+					continue;
+				}
+				if(fixed[i].start<fixed[j].start && fixed[i].end>fixed[j].end){
+					fixed.splice(j,1);
+				}else if(fixed[i].start>=fixed[j].start && fixed[i].start<=fixed[j].end){
+					fixed[i].start = cloneDate(fixed[j].start);
+					fixed.splice(j,1);
+				}else if(fixed[i].end>=fixed[j].start && fixed[i].end<=fixed[j].end){
+					fixed[i].end = cloneDate(fixed[j].end);
+					fixed.splice(j,1);
+				}
+			}
+		}
+		return fixed;
+	}
+	
 }

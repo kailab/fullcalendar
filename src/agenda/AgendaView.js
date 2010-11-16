@@ -75,7 +75,8 @@ function AgendaView(element, calendar, viewName) {
 	var slotSegHtml = t.slotSegHtml;
 	var formatDate = calendar.formatDate;
 	var renderIntervals = t.renderIntervals;
-	var reduceToInterval = t.reduceToInterval;
+	var reduceStartToInterval = t.reduceStartToInterval;
+	var reduceEndToInterval = t.reduceEndToInterval;
 	
 	// locals
 	var head, body, bodyContent, bodyTable, bg;
@@ -401,7 +402,6 @@ function AgendaView(element, calendar, viewName) {
 		if (refreshCoordinateGrid) {
 			coordinateGrid.build();
 		}
-		endDate = reduceToInterval(startDate,endDate);
 		var visStart = cloneDate(t.visStart);
 		var startCol, endCol;
 		if (rtl) {
@@ -428,7 +428,6 @@ function AgendaView(element, calendar, viewName) {
 	
 
 	function renderSlotOverlay(overlayStart, overlayEnd) {
-		overlayEnd = reduceToInterval(overlayStart,overlayEnd);
 		var dayStart = cloneDate(t.visStart);
 		var dayEnd = addDays(cloneDate(dayStart), 1);
 		for (var i=0; i<colCnt; i++) {
@@ -675,7 +674,12 @@ function AgendaView(element, calendar, viewName) {
 						d2,
 						addMinutes(cloneDate(d2), opt('slotMinutes'))
 					].sort(cmp);
-					renderSlotSelection(dates[0], dates[3]);
+
+					dates[0] = reduceStartToInterval(dates[0], dates[3], false);
+					if(dates[0] !== undefined){
+						dates[3] = reduceEndToInterval(dates[0], dates[3], false);
+						renderSlotSelection(dates[0], dates[3]);
+					}
 				}else{
 					dates = null;
 				}
@@ -687,7 +691,9 @@ function AgendaView(element, calendar, viewName) {
 						trigger('dayClick', _mousedownElement, dates[0], false, ev);
 						// BUG: _mousedownElement will sometimes be the overlay
 					}
-					reportSelection(dates[0], dates[3], false, ev);
+					if(dates[0] !== undefined && dates[3] !== undefined){
+						reportSelection(dates[0], dates[3], false, ev);
+					}
 				}
 			});
 		}

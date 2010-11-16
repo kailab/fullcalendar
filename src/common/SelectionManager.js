@@ -18,7 +18,8 @@ function SelectionManager() {
 	var defaultSelectionEnd = t.defaultSelectionEnd;
 	var renderSelection = t.renderSelection;
 	var clearSelection = t.clearSelection;
-	
+	var reduceStartToInterval = t.reduceStartToInterval;
+	var reduceEndToInterval = t.reduceEndToInterval;
 	
 	// locals
 	var selected = false;
@@ -44,8 +45,12 @@ function SelectionManager() {
 		if (!endDate) {
 			endDate = defaultSelectionEnd(startDate, allDay);
 		}
-		renderSelection(startDate, endDate, allDay);
-		reportSelection(startDate, endDate, allDay);
+		startDate = reduceStartToInterval(startDate, endDate, allDay);
+		if(startDate !== undefined){
+			endDate = reduceEndToInterval(startDate, endDate, allDay);
+			renderSelection(startDate, endDate, allDay);
+			reportSelection(startDate, endDate, allDay);
+		}
 	}
 	
 	
@@ -76,7 +81,11 @@ function SelectionManager() {
 				clearSelection();
 				if (cell && cellIsAllDay(cell)) {
 					dates = [ cellDate(origCell), cellDate(cell) ].sort(cmp);
-					renderSelection(dates[0], dates[1], true);
+					dates[0] = reduceStartToInterval(dates[0], dates[1], true);
+					if(dates[0] !== undefined){
+						dates[1] = reduceEndToInterval(dates[0], dates[1], true);
+						renderSelection(dates[0], dates[1], true);
+					}
 				}else{
 					dates = null;
 				}
@@ -88,7 +97,9 @@ function SelectionManager() {
 						trigger('dayClick', _mousedownElement, dates[0], true, ev);
 						// BUG: _mousedownElement will sometimes be the overlay
 					}
-					reportSelection(dates[0], dates[1], true, ev);
+					if(dates[0] !== undefined && dates[1] !== undefined){
+						reportSelection(dates[0], dates[1], true, ev);
+					}
 				}
 			});
 		}

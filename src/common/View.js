@@ -24,7 +24,8 @@ function View(element, calendar, viewName) {
 	t.inInterval = inInterval;
 	t.getInterval = getInterval;
 	t.reportIntervalClear = reportIntervalClear;
-	t.reduceToInterval = reduceToInterval;
+	t.reduceStartToInterval = reduceStartToInterval;
+	t.reduceEndToInterval = reduceEndToInterval;
 	// t.title
 	// t.start, t.end
 	// t.visStart, t.visEnd
@@ -39,7 +40,7 @@ function View(element, calendar, viewName) {
 	var eventsByID = {};
 	var eventElements = [];
 	var eventElementsByID = {};
-	var intervalsByID = {};
+	var intervals = {};
 	var options = calendar.options;
 	
 	
@@ -236,101 +237,91 @@ function View(element, calendar, viewName) {
 	------------------------------------------------------------------------------*/
 	
 	// report when view receives new intervals
-	function reportIntervals(intervals) { // intervals are already normalized at this point
-		intervalsByID = {};
-		var i, len=intervals.length, interval;
-		for (i=0; i<len; i++) {
-			interval = intervals[i];
-			if (intervalsByID[interval._id]) {
-				intervalsByID[interval._id].push(interval);
-			}else{
-				intervalsByID[interval._id] = [interval];
-			}
-		}
+	function reportIntervals(_intervals) { // intervals are already normalized at this point
+		intervals = _intervals;
 	}
 
 	function clearIntervals() {
-		intervalsByID = {};
+		intervals = {};
 	}
 
 	function reportIntervalClear() {
 		clearIntervals();
 	}
 
-	function getInterval(start,end) {
-		if(typeof end == 'string'){
-			var d = 0;
-			switch(end){
-				case 'day':
-					d = 86400000;
-					break;
-			}
-			end = new Date(start.getTime()+d);
-		}else if(typeof end == 'integer'){
-			// end is difference in seconds
-			end = new Date(start.getTime()+(end*1000));
-        }else if(end === undefined){
-			end = start;
+	function getInterval(start,end,allDay) {
+		if(allDay){
+			start = cloneDate(start);
+			start.setHours(0);
+			start.setMinutes(0);
+			start.setSeconds(0);
+			start.setMilliseconds(0);
+			end = new Date(start.getTime()+86400000);
 		}
 		var interval = { mode: 0 };
-		$.each(intervalsByID, function(id,intervals) {
-			$.each(intervals, function() {
-				if(interval.mode < 4 && start >= this.start && end <= this.end ){
-					interval = this
-					// interval completely in
-					interval.mode = 4;
-				}else if(interval.mode < 3 && start <= this.start && end >= this.end){
-					// interval completely out
-					interval = this
-					interval.mode = 3;
-				}else if(interval.mode < 2 && start > this.start && start < this.end){
-					interval = this
-					// interval partly in start
-					interval.mode = 2;
-				}else if(interval.mode < 1 && end > this.start && end < this.end ){
-					interval = this
-					// interval partly in end
-					interval.mode = 1;
-				}
-			});
+		$.each(intervals, function() {
+			if(interval.mode < 4 && start >= this.start && end <= this.end ){
+				interval = this
+				// completely in interval
+				interval.mode = 4;
+			}else if(interval.mode < 3 && start <= this.start && end >= this.end){
+				// interval completely in
+				interval = this
+				interval.mode = 3;
+			}else if(interval.mode < 2 && start > this.start && start < this.end){
+				interval = this
+				// interval partly in start
+				interval.mode = 2;
+			}else if(interval.mode < 1 && end > this.start && end < this.end ){
+				interval = this
+				// interval partly in end
+				interval.mode = 1;
+			}
 		});
 		return interval;
 	}
 
-	function inInterval(start,end) {
-        var interval = getInterval(start,end);
+	function inInterval(start,end,allDay) {
+        var interval = getInterval(start,end,allDay);
         return interval.mode;
 	}
 
-	function reduceToInterval(start,end,mode) {
-		if(mode === undefined){
-			mode = opt('selectableOnlyIntervals');
+	function reduceStartToInterval(start,end,allDay) {
+		if(opt('selectableOnlyIntervals') !== true){
+			return start;
 		}
-		if(mode === undefined){
+		var interval = getInterval(start,end,allDay);
+		if(interval.mode > 0){
+			if(interval.start > start){
+				return interval.start;
+			}else{
+				return start;
+			}
+		}else{
+			return undefined;
+		}
+	}
+
+	function reduceEndToInterval(start,end,allDay) {
+		if(opt('selectableOnlyIntervals') !== true){
 			return end;
 		}
-		if(mode === true){
-			mode = 2;
+		if(end < start){
+			end = cloneDate(start);
 		}
-		var interval = {}
-		var position = start;
-		do{
-			interval = getInterval(position);
-			if(interval.mode == 0){
-				break;
+		var interval = getInterval(start,end,allDay);
+		if(interval.mode > 0){
+			if(interval.end <= end){
+				end = cloneDate(interval.end);
+				if(allDay){
+					end.setTime(end.getTime()-1);
+				}
 			}
-			if(interval.mode < mode){
-				break;
-			}
-			if(interval.end <= position){
-				break;
-			}
-			position = interval.end;
-		}while(true);
-		if(position > end){
-			position = end;
+			return end;
+		}else{
+			return undefined;
 		}
-		return position;
+
 	}
 
 }

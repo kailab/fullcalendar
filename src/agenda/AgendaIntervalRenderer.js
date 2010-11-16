@@ -24,8 +24,8 @@ function AgendaIntervalRenderer() {
 	--------------------------------------------------------------------*/
 
 
-	function setIntervalClass(elm,start,end) {
-		var mode = inInterval(start,end);
+	function setIntervalClass(elm,start,end,allDay) {
+		var mode = inInterval(start,end,allDay);
 		if(mode == 4){
 			$(elm).removeClass('fc-not-in-interval')
 				.removeClass('fc-partly-in-interval')
@@ -50,7 +50,7 @@ function AgendaIntervalRenderer() {
 		var nwe = opt('weekends') ? 0 : 1;
 		thead.find('.fc-all-day td').each(function() {
 			var td = $(this);
-			setIntervalClass(this,d,'day');
+			setIntervalClass(this,d,d,true);
 			addDays(d, 1);
 			if (nwe) {
 				skipWeekend(d);
@@ -63,6 +63,21 @@ function AgendaIntervalRenderer() {
 			renderOutsideInterval(this.start,this.end);
 		});
 	}
+
+
+	function getOutsideIntervals(intervals) {
+		// we expect no overlapping intervals
+		// since they were fixed in the view
+		var outsides = [{start:t.visStart}];
+		$.each(intervals,function(){
+			outsides[outsides.length-1].end = this.start;
+			outsides.push({start:this.end});
+		});
+		outsides[outsides.length-1].end = t.visEnd;
+		return outsides;
+	}
+
+	/*
 
 	// returns the parts without intervals
 	function getOutsideIntervals(intervals) {
@@ -92,6 +107,8 @@ function AgendaIntervalRenderer() {
 		});
 		return outsides;
 	}
+
+	*/
 
 	function clearIntervals() {
 		clearIntervalOverlays();

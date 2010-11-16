@@ -23,8 +23,8 @@ function BasicIntervalRenderer() {
 	--------------------------------------------------------------------*/
 
 
-	function setIntervalClass(elm,start,end) {
-		var mode = inInterval(start,end);
+	function setIntervalClass(elm,start,end,allDay) {
+		var mode = inInterval(start,end,allDay);
 		if(mode == 4){
 			$(elm).removeClass('fc-not-in-interval')
 				.removeClass('fc-partly-in-interval')
@@ -48,7 +48,7 @@ function BasicIntervalRenderer() {
 		var nwe = opt('weekends') ? 0 : 1;
 		tbody.find('td').each(function() {
 			var td = $(this);
-			setIntervalClass(this,d,'day');
+			setIntervalClass(this,d,d,true);
 			addDays(d, 1);
 			if (nwe) {
 				skipWeekend(d);

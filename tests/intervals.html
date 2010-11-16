@@ -45,7 +45,10 @@
                     start: new Date(y,m,17,11),
                     end: new Date(y,m,17,14)
                 }
-            ],
+			],
+			select: function( startDate, endDate, allDay, jsEvent, view ){
+				alert('selected from '+startDate+' to '+endDate+'.');
+			},
 			events: [
 				{
 					title: 'All Day Event',
