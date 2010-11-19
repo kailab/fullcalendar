@@ -269,15 +269,38 @@ function IntervalManager(options, sources) {
 		// TODO: if there is no start date, return false to indicate an invalid interval
 	}
 
+  function isIntervalEmpty(interval) {
+    if(!$.isPlainObject(interval)){
+      return false;
+    }
+    if(interval.start === undefined || interval.start === null){
+      return true;
+    }
+    if(interval.end === undefined || interval.end === null){
+      return true;
+    }
+    if(interval.start == interval.end){
+      return true;
+    }
+    return false;
+  }
+
 	function fixOverlappingIntervals(intervals) {
 		var fixed = $.extend([],intervals);
 		// fix overlapping intervals
 		for(var i=0; i<fixed.length; i++){
+      if(isIntervalEmpty(fixed[i])){
+        fixed.splice(i,1);
+        continue;
+      }
 			for(var j=0; j<fixed.length; j++){
 				if(i==j){
 					continue;
 				}
-				if(fixed[i].start<fixed[j].start && fixed[i].end>fixed[j].end){
+        if(isIntervalEmpty(fixed[j])){
+          fixed.splice(j,1);
+          continue;
+        }else if(fixed[i].start<fixed[j].start && fixed[i].end>fixed[j].end){
 					fixed.splice(j,1);
 				}else if(fixed[i].start>=fixed[j].start && fixed[i].start<=fixed[j].end){
 					fixed[i].start = cloneDate(fixed[j].start);
@@ -288,7 +311,9 @@ function IntervalManager(options, sources) {
 				}
 			}
 		}
-		return fixed;
+		return fixed.sort(function(a,b){
+			return a.start-b.start;
+		});
 	}
 	
 }

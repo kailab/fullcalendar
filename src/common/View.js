@@ -256,7 +256,7 @@ function View(element, calendar, viewName) {
 			start.setMinutes(0);
 			start.setSeconds(0);
 			start.setMilliseconds(0);
-			end = new Date(start.getTime()+86400000);
+			end = new Date(start.getTime()+86399999);
 		}
 		var interval = { mode: 0 };
 		$.each(intervals, function() {
@@ -311,13 +311,11 @@ function View(element, calendar, viewName) {
 		}
 		var interval = getInterval(start,end,allDay);
 		if(interval.mode > 0){
-			if(interval.end <= end){
-				end = cloneDate(interval.end);
-				if(allDay){
-					end.setTime(end.getTime()-1);
-				}
+			if(interval.end < end){
+				return interval.end;
+			}else{
+				return end;
 			}
-			return end;
 		}else{
 			return undefined;
 		}

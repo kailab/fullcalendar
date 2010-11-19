@@ -77,39 +77,6 @@ function AgendaIntervalRenderer() {
 		return outsides;
 	}
 
-	/*
-
-	// returns the parts without intervals
-	function getOutsideIntervals(intervals) {
-		var outsides = [{start:t.visStart,end:t.visEnd}];
-		$.each(intervals,function(i,interval){
-			$.each(outsides,function(j,outside){
-				if(!$.isPlainObject(outside) || !$.isPlainObject(interval)){
-					return;
-				}
-				if(outside.start<=interval.start && outside.end>=interval.end){
-					outsides[j] = {
-						start: 	outside.start,
-						end:    interval.start
-					};
-					outsides.push({
-						start: 	interval.end,
-						end:    outside.end
-					});
-				}else if(outside.start>=interval.start && outside.end<=interval.end){
-					outsides.splice(j,1);
-				}else if(outside.start<=interval.end && outside.start>=interval.start){
-					outsides[j].start = interval.end;
-				}else if(outside.end>=interval.start && outside.end<=interval.end){
-					outsides[j].end = interval.start;
-				}
-			});
-		});
-		return outsides;
-	}
-
-	*/
-
 	function clearIntervals() {
 		clearIntervalOverlays();
 		reportIntervalClear();

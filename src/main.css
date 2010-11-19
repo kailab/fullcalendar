@@ -235,11 +235,11 @@ table.fc-header {
 
 .fc-content .fc-partly-in-interval {
 	opacity: 0.5;
-    background-color: #eee !important; 
+    background: #eee !important; 
 }
 
 .fc-content .fc-not-in-interval {
 	opacity: 0.5;
-    background-color: #ccc !important; 
+    background: #ccc !important; 
 }
 

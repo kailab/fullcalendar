@@ -157,11 +157,9 @@ function EventManager(options, sources) {
 				}else{
 					e.end = null;
 				}
-				e.title = event.title;
-				e.url = event.url;
-				e.allDay = event.allDay;
-				e.className = event.className;
-				e.editable = event.editable;
+        $.each(event,function(k,v){
+            e[k] = v;
+        });
 				normalizeEvent(e);
 			}
 		}
